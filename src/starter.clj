@@ -11,7 +11,6 @@
   (:import [java.awt.datatransfer DataFlavor StringSelection Transferable]))
 
 
-
 (defn clipboard []
   (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit)))
 
@@ -55,7 +54,6 @@
 (defn get-news-details []
   (map get-news-item (get-news)))
 
-(nth (get-news-details) 8)
 
 (defn tooltip [opts child]
   [ui/tooltip
@@ -66,6 +64,16 @@
                [ui/label text]]]))
    child])
 
+
+(defn link [url child]
+  [ui/clickable
+   {:on-click (fn [_] (browse/browse-url url))}
+   child])
+
+(defn text-color [color child]
+  [ui/with-context
+   {:fill-text (paint/fill color)}
+   child])
 
 (defn with-font []
   (let [{:keys [face-ui scale]} ui/*ctx*
@@ -81,32 +89,27 @@
                         (reset! *news (take 10 (get-news-details)))
                         (reset! *loading false)))}
          [ui/label {:font font} "Fetch"]]
-        [ui/align
-         {:y :center}
-         [ui/label {:font font}
-          (if (deref *loading) "Loading..." "Loaded.")]]]]
+        (let [loading? (deref *loading)]
+          [text-color
+           (if loading? 0xFFFF82FF 0xFF0082FF)
+           [ui/align
+            {:y :center}
+            [ui/label {:font font}
+             (if loading? "Loading..." "Loaded.")]]])]]
 
       [ui/column {:gap 20}
        (map (fn [{:keys [title url]}]
-              [ui/hoverable
-               (fn [state]
-                 [ui/row
-                  [ui/clickable
-                   {:on-click (fn [_] (clipboard-spit url))}
-                   [ui/label "copy"]]
-                  [ui/clickable
-                   {:on-click (fn [_] (browse/browse-url url))}
-                   [tooltip
-                    {:shackle :top-left
-                     :anchor  :bottom-left
-                     :tip     "You click me if you want"}
-                    [ui/paragraph {:font font} title]]]]
-
-                 #_[ui/rect {:paint (paint/fill (if (:hovered state)
-                                                0xFFEEEEEE
-                                                0xFFFFEEEE))}
-                  #_[ui/checkbox {} title]
-                  ])])
+              [ui/row
+               #_[ui/clickable
+                {:on-click (fn [_] (clipboard-spit url))}
+                [ui/label "copy"]]
+               [link
+                url
+                [tooltip
+                 {:shackle :top-left
+                  :anchor  :bottom-left
+                  :tip     "You click me if you want"}
+                 [ui/paragraph {:font font} title]]]])
             (deref *news))]]]))
 
 
@@ -115,16 +118,25 @@
 
 
 
-(redraw!)
 
 
 (defn -main [& args]
   (ui/start-app!
-   (reset! *window
-           (ui/window
-            {:title    "HumbleUI Modal Example"
-             :bg-color 0xFFFFFFFF}
-            #'app))))
+    (reset! *window
+            (ui/window
+             {:title    "HumbleUI Modal Example"
+              :bg-color 0xFFFFFFFF}
+             #'app))))
 
 
-(-main)
+
+
+
+(comment
+
+  (redraw!)
+
+  (-main)
+
+
+  )
