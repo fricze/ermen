@@ -1,27 +1,16 @@
 (ns starter
-  (:require
-   [clojure.data.json :as json]
-   [clj-http.client :as client]
-   [clojure.java.browse :as browse]
-   [io.github.humbleui.ui :as ui]
-   [io.github.humbleui.signal :as signal]
-   [io.github.humbleui.paint :as paint]
-   [io.github.humbleui.window :as window]
-   [io.github.humbleui.font :as font])
-  (:import [java.awt.datatransfer DataFlavor StringSelection Transferable]))
+  (:require [data :refer [get-news-details get-news]]
+            [clojure.java.browse :as browse]
+            [io.github.humbleui.ui :as ui]
+            [io.github.humbleui.signal :as signal]
+            [io.github.humbleui.paint :as paint]
+            [io.github.humbleui.window :as window]
+            [link :as link]
+            [io.github.humbleui.font :as font]
+            [clipboard]))
 
 
-(defn clipboard []
-  (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit)))
 
-(defn clipboard-slurp []
-  (try
-    (.getTransferData (.getContents (clipboard) nil) (DataFlavor/stringFlavor))
-    (catch java.lang.NullPointerException e nil)))
-
-(defn clipboard-spit [text]
-  (let [selection (StringSelection. text)]
-    (.setContents (clipboard) selection selection)))
 
 (defonce *news
   (signal/signal []))
@@ -32,85 +21,88 @@
 (defonce *window
   (atom nil))
 
+(defonce *page
+  (signal/signal 0))
+
+
 (defn redraw!
   "Requests a redraw on the next available frame."
   []
   (some-> @*window window/request-frame))
 
 
+(def page-size 5)
 
-(defn get-news []
-  (->> "https://hacker-news.firebaseio.com/v0/topstories.json"
-       client/get
-       :body
-       json/read-json))
+(defn load-news [page]
+  (reset! *loading true)
+  (reset! *news (get-news-details (take page-size (drop (* page page-size) (get-news)))))
+  (reset! *loading false))
 
-(defn get-news-item [id]
-  (->> (str "https://hacker-news.firebaseio.com/v0/item/" id ".json")
-       client/get
-       :body
-       json/read-json))
+(ui/defcomp header []
+  (let [{:keys [face-ui scale]} ui/*ctx*
+        font                    (font/make-with-cap-height face-ui (* 12 scale))]
+    [ui/align {:x :left}
+     [ui/row {:gap 10}
+      [ui/button
+       {:on-click (fn [_] (future (load-news 0)))}
+       [ui/label {:font font} "Fetch"]]
 
-(defn get-news-details []
-  (map get-news-item (get-news)))
+      [ui/button
+       {:on-click (fn [_]
+                    (future
+                      (reset! *news [])))}
+
+       [ui/label {:font font} "Clear"]]
+
+      (let [loading? (deref *loading)]
+        [ui/align
+         {:y :center}
+         [ui/label {:paint (paint/fill (if loading? 0xFFFF82FF 0xFF0082FF))}
+          (if loading? "Loading..." "")]])]]))
+
+(ui/defcomp content []
+  [ui/padding
+   {:bottom 140}
+   [ui/vscrollbar
+    [ui/with-context
+     {:font-size 18}
+     [ui/column {:gap 20}
+      (map (fn [{:keys [title url]}]
+             [ui/align
+              {:x :left}
+              [link/link
+               #(browse/browse-url url)
+               title]])
+           (take page-size (deref *news)))]]]])
 
 
-(defn tooltip [opts child]
-  [ui/tooltip
-   (update opts :tip
-           (fn [text]
-             [ui/rect {:paint (paint/fill 0xFFE9E9E9)}
-              [ui/padding {:padding 10}
-               [ui/label text]]]))
-   child])
+(ui/defcomp pages []
+  [ui/row
+   (let [news    (get-news)
+         page-no (deref *page)]
+     (for [i (range (/ (count news) page-size))]
+       [ui/padding {:right 4}
+        [ui/with-cursor {:cursor :pointing-hand}
+         [ui/button
+          {:on-click (fn [_]
+                       (future
+                         (reset! *page i)
+                         (load-news i)))}
+          [ui/label {:paint (if (= i page-no)
+                              (paint/fill 0xFF000000)
+                              (paint/fill 0xFFFFFFFF))}
+           (str (inc i))]]]]))])
 
-
-(defn link [url child]
-  [ui/clickable
-   {:on-click (fn [_] (browse/browse-url url))}
-   child])
-
-(defn text-color [color child]
-  [ui/with-context
-   {:fill-text (paint/fill color)}
-   child])
 
 (defn with-font []
   (let [{:keys [face-ui scale]} ui/*ctx*
         font                    (font/make-with-cap-height face-ui (* 12 scale))]
-    [ui/center
+    [ui/padding
+     {:padding 20}
      [ui/column {:gap 30}
-      [ui/align {:x :left}
-       [ui/row {:gap 10}
-        [ui/button
-         {:on-click (fn [_]
-                      (future
-                        (reset! *loading true)
-                        (reset! *news (take 10 (get-news-details)))
-                        (reset! *loading false)))}
-         [ui/label {:font font} "Fetch"]]
-        (let [loading? (deref *loading)]
-          [text-color
-           (if loading? 0xFFFF82FF 0xFF0082FF)
-           [ui/align
-            {:y :center}
-            [ui/label {:font font}
-             (if loading? "Loading..." "Loaded.")]]])]]
-
-      [ui/column {:gap 20}
-       (map (fn [{:keys [title url]}]
-              [ui/row
-               #_[ui/clickable
-                {:on-click (fn [_] (clipboard-spit url))}
-                [ui/label "copy"]]
-               [link
-                url
-                [tooltip
-                 {:shackle :top-left
-                  :anchor  :bottom-left
-                  :tip     "You click me if you want"}
-                 [ui/paragraph {:font font} title]]]])
-            (deref *news))]]]))
+      [header]
+      [pages]
+      [content]]]))
 
 
 (ui/defcomp app []
@@ -118,18 +110,13 @@
 
 
 
-
-
 (defn -main [& args]
   (ui/start-app!
     (reset! *window
             (ui/window
-             {:title    "HumbleUI Modal Example"
+             {:title    "Hacker News"
               :bg-color 0xFFFFFFFF}
              #'app))))
-
-
-
 
 
 (comment
