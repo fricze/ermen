@@ -35,8 +35,12 @@
 
 (defn load-news [page]
   (reset! *loading true)
-  (reset! *news (get-news-details (take page-size (drop (* page page-size) (get-news)))))
-  (reset! *loading false))
+  (println "loading true")
+  (let [news @(future (get-news-details (take page-size (drop (* page page-size) (get-news)))))]
+    (println "loaded future")
+    (reset! *news news)
+    (reset! *loading false)
+    (println "loading false")))
 
 (ui/defcomp header []
   (let [{:keys [face-ui scale]} ui/*ctx*
@@ -44,7 +48,7 @@
     [ui/align {:x :left}
      [ui/row {:gap 10}
       [ui/button
-       {:on-click (fn [_] (future (load-news 0)))}
+       {:on-click (fn [_] (load-news 0))}
        [ui/label {:font font} "Fetch"]]
 
       [ui/button
@@ -61,8 +65,7 @@
           (if loading? "Loading..." "")]])]]))
 
 (ui/defcomp content []
-  [ui/padding
-   {:bottom 140}
+  [ui/padding {:bottom 140}
    [ui/vscrollbar
     [ui/with-context
      {:font-size 18}
@@ -85,28 +88,21 @@
         [ui/with-cursor {:cursor :pointing-hand}
          [ui/button
           {:on-click (fn [_]
-                       (future
-                         (reset! *page i)
-                         (load-news i)))}
+                       (reset! *page i)
+                       (load-news i))}
           [ui/label {:paint (if (= i page-no)
                               (paint/fill 0xFF000000)
                               (paint/fill 0xFFFFFFFF))}
            (str (inc i))]]]]))])
 
 
-(defn with-font []
-  (let [{:keys [face-ui scale]} ui/*ctx*
-        font                    (font/make-with-cap-height face-ui (* 12 scale))]
-    [ui/padding
-     {:padding 20}
-     [ui/column {:gap 30}
-      [header]
-      [pages]
-      [content]]]))
-
-
 (ui/defcomp app []
-  [with-font])
+  [ui/padding
+   {:padding 20}
+   [ui/column {:gap 30}
+    [header]
+    [pages]
+    [content]]])
 
 
 
