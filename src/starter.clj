@@ -1,15 +1,11 @@
 (ns starter
-  (:require [data :refer [get-news-details get-news]]
+  (:require [data :refer [get-news-from-page]]
             [clojure.java.browse :as browse]
             [io.github.humbleui.ui :as ui]
             [io.github.humbleui.signal :as signal]
             [io.github.humbleui.paint :as paint]
             [io.github.humbleui.window :as window]
-            [link :as link]
-            [io.github.humbleui.font :as font]
             [clipboard]))
-
-
 
 
 (defonce *news
@@ -30,70 +26,54 @@
   []
   (some-> @*window window/request-frame))
 
-
-(def page-size 5)
+(def page-size 20)
 
 (defn load-news [page]
+  (reset! *page page)
   (reset! *loading true)
-  (println "loading true")
-  (let [news @(future (get-news-details (take page-size (drop (* page page-size) (get-news)))))]
-    (println "loaded future")
-    (reset! *news news)
-    (reset! *loading false)
-    (println "loading false")))
+  (future
+    (let [news (get-news-from-page page page-size)]
+      (reset! *news news)
+      (reset! *loading false))))
+
 
 (ui/defcomp header []
-  (let [{:keys [face-ui scale]} ui/*ctx*
-        font                    (font/make-with-cap-height face-ui (* 12 scale))]
-    [ui/align {:x :left}
-     [ui/row {:gap 10}
-      [ui/button
-       {:on-click (fn [_] (load-news 0))}
-       [ui/label {:font font} "Fetch"]]
-
-      [ui/button
-       {:on-click (fn [_]
-                    (future
-                      (reset! *news [])))}
-
-       [ui/label {:font font} "Clear"]]
-
-      (let [loading? (deref *loading)]
-        [ui/align
-         {:y :center}
-         [ui/label {:paint (paint/fill (if loading? 0xFFFF82FF 0xFF0082FF))}
-          (if loading? "Loading..." "")]])]]))
+  (let [loading? (deref *loading)]
+    [ui/align
+     {:y :center}
+     [ui/label {:paint (paint/fill (if loading? 0xFFFF82FF 0xFF0082FF))}
+      (if loading? "Loading..." "")]]))
 
 (ui/defcomp content []
-  [ui/padding {:bottom 140}
-   [ui/vscrollbar
+  (let [news (deref *news)]
     [ui/with-context
      {:font-size 18}
-     [ui/column {:gap 20}
-      (map (fn [{:keys [title url]}]
-             [ui/align
-              {:x :left}
-              [link/link
-               #(browse/browse-url url)
-               title]])
-           (take page-size (deref *news)))]]]])
+     [ui/padding {:bottom 140}
+      [ui/vscrollbar
+       [ui/column {:gap 20}
+        (for [article news]
+          (let [{:keys [title url]} article]
+            [ui/align {:x :left}
+             [ui/link
+              #(browse/browse-url url)
+              title]]))]]]]))
 
 
 (ui/defcomp pages []
-  [ui/row
-   (let [news    (get-news)
-         page-no (deref *page)]
-     (for [i (range (/ (count news) page-size))]
-       [ui/padding {:right 4}
+  (let [page-no (deref *page)]
+    [ui/column {:gap 20}
+     [ui/row {:gap 8}
+      (for [i (range 10)]
         [ui/with-cursor {:cursor :pointing-hand}
          [ui/button
           {:on-click (fn [_]
-                       (reset! *page i)
-                       (load-news i))}
-          [ui/label {:paint (if (= i page-no)
-                              (paint/fill 0xFF000000)
-                              (paint/fill 0xFFFFFFFF))}
-           (str (inc i))]]]]))])
+                       (load-news i)
+                       true)}
+          [ui/label
+           {:paint (if (= page-no i)
+                     (paint/fill 0xFFF2F2F2)
+                     (paint/fill 0xFF000000))}
+           (inc i)]]])]]))
 
 
 (ui/defcomp app []

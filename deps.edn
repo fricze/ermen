@@ -1,5 +1,5 @@
 {:deps
  {org.clojure/clojure {:mvn/version "1.11.1"}
-  clj-http/clj-http {:mvn/version "3.13.0"}
+  http-kit/http-kit {:mvn/version "2.8.0"}
   org.clojure/data.json {:mvn/version "2.5.0"}
   io.github.humbleui/humbleui {:git/sha "59d46f460fa24ae6dcf017e715d627705c70fbe6"}}}
