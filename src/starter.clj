@@ -8,6 +8,7 @@
             [clipboard]))
 
 
+
 (defonce *news
   (signal/signal []))
 
@@ -37,7 +38,7 @@
       (reset! *loading false))))
 
 
-(ui/defcomp header []
+(ui/defcomp app-state []
   (let [loading? (deref *loading)]
     [ui/align
      {:y :center}
@@ -48,18 +49,21 @@
   (let [news (deref *news)]
     [ui/with-context
      {:font-size 18}
-     [ui/padding {:bottom 100}
-      [ui/vscrollbar
-       [ui/padding {:top 20 :bottom 20}
-        [ui/column {:gap 20}
-         (map
-          (fn [{:keys [title url]}]
-            ^{:key url}
-            [ui/align {:x :left}
+     [ui/vscrollbar
+      [ui/padding {:top 20 :bottom 20}
+       [ui/column {:gap 20}
+        (map
+         (fn [{:keys [title url id]}]
+           ^{:key id}
+           [ui/align {:x :left}
+            [ui/row {:gap 8}
              [ui/link
-              #(browse/browse-url url)
-              title]])
-          news)]]]]]))
+              #(browse/browse-url (str "https://news.ycombinator.com/item?id=" id))
+              "[hn]"]
+             [ui/link
+              #(browse/browse-url (or url (str "https://news.ycombinator.com/item?id=" id)))
+              title]]])
+         news)]]]]))
 
 
 (ui/defcomp pages []
@@ -81,9 +85,10 @@
 
 (ui/defcomp app []
   [ui/padding
-   {:padding 20}
-   [ui/column {:gap 30}
-    [header]
+   {:padding 20
+    :bottom 80}
+   [ui/column {:gap 18}
+    [app-state]
     [pages]
     [content]]])
 

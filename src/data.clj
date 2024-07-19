@@ -20,7 +20,7 @@
   (-> item
       :body
       json/read-json
-      (select-keys [:title :url])))
+      (select-keys [:title :url :id])))
 
 (defn get-news-details [ids]
   (let [calls (doall (map get-news-item ids))
