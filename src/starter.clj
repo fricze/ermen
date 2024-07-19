@@ -48,15 +48,18 @@
   (let [news (deref *news)]
     [ui/with-context
      {:font-size 18}
-     [ui/padding {:bottom 140}
+     [ui/padding {:bottom 100}
       [ui/vscrollbar
-       [ui/column {:gap 20}
-        (for [article news]
-          (let [{:keys [title url]} article]
+       [ui/padding {:top 20 :bottom 20}
+        [ui/column {:gap 20}
+         (map
+          (fn [{:keys [title url]}]
+            ^{:key url}
             [ui/align {:x :left}
              [ui/link
               #(browse/browse-url url)
-              title]]))]]]]))
+              title]])
+          news)]]]]]))
 
 
 (ui/defcomp pages []
