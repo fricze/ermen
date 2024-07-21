@@ -84,6 +84,28 @@
                                   :from 0
                                   :to 0}))
 
+(ui/defcomp header []
+  [ui/padding {:left  100
+               :right 100
+               :top   20}
+   [ui/column {:gap 8}
+    [ui/button
+     {:on-click (fn [_]
+                  (future (show-file-dialog)))}
+     "Open file"]
+
+    [ui/size {:width 300}
+     [text-field "column"
+      :padding-h 5
+      :padding-v 10
+      :*state *search-columns]]
+
+    [ui/size {:width 300}
+     [text-field "row"
+      :padding-h 5
+      :padding-v 10
+      :*state *search-rows]]]])
+
 
 (ui/defcomp ui []
   (let [{:keys [rows
@@ -91,21 +113,10 @@
                 sort-dir]} @*state
         search-col         @*search-columns
         search-row         @*search-rows]
-    [ui/column
-     [ui/button
-      {:on-click (fn [_]
-                   (future (show-file-dialog)))}
-      "Open file"]
-     [ui/size {:width 300}
-      [text-field "column"
-       :padding-h 5
-       :padding-v 10
-       :*state *search-columns]]
-     [ui/size {:width 300}
-      [text-field "row"
-       :padding-h 5
-       :padding-v 10
-       :*state *search-rows]]
+    [ui/column {:gap 8}
+     [header]
+
+
      [ui/align {:y :center}
       [ui/vscroll
        [ui/align {:x :center}
@@ -154,7 +165,7 @@
   (ui/start-app!
     (reset! *window
             (ui/window
-             {:title    "Hacker News"
+             {:title    "Datasets"
               :bg-color 0xFFFFFFFF}
              #'ui))))
 
