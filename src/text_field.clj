@@ -11,10 +11,8 @@
                                  border-radius         4
                                  *state                (signal/signal
                                                         {:text        text
-                                                         :placeholder "from within"
-                                                         })}
+                                                         :placeholder "from within"})}
                           :as   opts}]
-  (println @*state)
   [ui/with-context
    {:hui.text-field/cursor-blink-interval cursor-blink-interval
     :hui.text-field/cursor-width          cursor-width

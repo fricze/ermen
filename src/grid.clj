@@ -74,26 +74,38 @@
            :sort-dir   :asc
            :rows (->> rows (sort-by #(nth % i)))})))))
 
-(def *search (signal/signal {:text        ""
-                             :placeholder "Filter columns"}))
+(def *search-columns (signal/signal {:text        ""
+                                     :placeholder "Filter columns"
+                                     :from 0
+                                     :to 0}))
+
+(def *search-rows (signal/signal {:text        ""
+                                  :placeholder "Filter rows"
+                                  :from 0
+                                  :to 0}))
 
 
 (ui/defcomp ui []
   (let [{:keys [rows
                 sort-col
                 sort-dir]} @*state
-        search             @*search]
+        search-col         @*search-columns
+        search-row         @*search-rows]
     [ui/column
      [ui/button
       {:on-click (fn [_]
                    (future (show-file-dialog)))}
       "Open file"]
      [ui/size {:width 300}
-      [text-field ""
-       :placeholder "here think uo"
+      [text-field "column"
        :padding-h 5
        :padding-v 10
-       :*state *search]]
+       :*state *search-columns]]
+     [ui/size {:width 300}
+      [text-field "row"
+       :padding-h 5
+       :padding-v 10
+       :*state *search-rows]]
      [ui/align {:y :center}
       [ui/vscroll
        [ui/align {:x :center}
@@ -109,20 +121,30 @@
                 {:probes [[ui/label (str th " ⏶")]
                           [ui/label (str th " ⏷")]]}
                 [ui/align {:x :left}
-                 [ui/label {:font-weight :bold}
-                  (str th
-                       (case (when (= i sort-col)
-                               sort-dir)
-                         :asc  " ⏶"
-                         :desc " ⏷"
-                         nil   ""))]]]]])
+                 [ui/row
+                  [ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
+                  [ui/label {:font-weight :bold}
+                   (str th
+                        (case (when (= i sort-col)
+                                sort-dir)
+                          :asc  " ⏶"
+                          :desc " ⏷"
+                          nil   ""))]]]]]])
 
            (let [rows (filter (fn [row] (re-find
-                                         (re-pattern (str "(?i)" (:text search)))  (first row))) rows)]
+                                         (re-pattern (str "(?i)" (:text search-col)))
+                                         (first row)))
+                              rows)
+                 rows (filter (fn [row]
+                                (some (fn [cell] (re-find
+                                                  (re-pattern (str "(?i)" (:text search-row)))
+                                                  cell))
+                                      (rest row))) rows)]
              (for [row rows
                    s   row]
                [ui/padding {:padding 10}
                 [ui/label s]])))]]]]]]))
+
 
 
 (defonce *window
