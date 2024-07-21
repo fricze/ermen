@@ -118,7 +118,7 @@
                          nil   ""))]]]]])
 
            (let [rows (filter (fn [row] (re-find
-                                         (re-pattern (:text search)) (first row))) rows)]
+                                         (re-pattern (str "(?i)" (:text search)))  (first row))) rows)]
              (for [row rows
                    s   row]
                [ui/padding {:padding 10}
