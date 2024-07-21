@@ -1,13 +1,11 @@
 (ns grid
-  (:require
-   [clojure.data.csv :as csv]
-   [clojure.java.io :as io]
-   [tech.v3.dataset :as ds]
-   [clojure.string :as str]
-   [io.github.humbleui.util :as util]
-   [io.github.humbleui.window :as window]
-   [io.github.humbleui.signal :as signal]
-   [io.github.humbleui.ui :as ui])
+  (:require [tech.v3.dataset :as ds]
+            [clojure.string :as str]
+            [io.github.humbleui.util :as util]
+            [io.github.humbleui.window :as window]
+            [io.github.humbleui.signal :as signal]
+            [text-field :refer [text-field]]
+            [io.github.humbleui.ui :as ui])
   (:import [java.awt FileDialog Frame]))
 
 
@@ -18,17 +16,16 @@
   (signal/signal
    {:sort-col   0
     :sort-dir   :asc
-    :currencies []}))
+    :rows []}))
 
 (defn load-csv [file]
-  (println (ds/->dataset file))
+  (let [ds      (ds/->dataset file)
+        columns (ds/column-names ds)
+        rows    (ds/rowvecs ds)]
+    (reset! *header columns)
+    (swap! *state (fn [state] (assoc state :rows (vec rows))))))
 
-  #_(let [[head & tail]
-        (with-open [reader (io/reader file)]
-          (doall
-           (csv/read-csv reader)))]
-    (reset! *header head)
-    (swap! *state (fn [state] (assoc state :currencies tail)))))
+
 
 (defn -load-csv [file]
   (let [[head & tail]
@@ -36,10 +33,10 @@
              (str/split-lines)
              (mapv #(str/split % #",")))]
     (reset! *header head)
-    (swap! *state (fn [state] (assoc state :currencies tail)))))
+    (swap! *state (fn [state] (assoc state :rows tail)))))
 
-(-load-csv "dev/currency.csv")
 (comment
+  (-load-csv "dev/currency.csv")
   (for [x (ds/->dataset "dev/currency.csv")]
     x)
   (ds/column-names (ds/->dataset "dev/currency.csv"))
@@ -60,38 +57,49 @@
 (defn on-click [i]
   (fn [e]
     (swap! *state
-      (fn [{:keys [sort-col sort-dir currencies] :as state}]
+      (fn [{:keys [sort-col sort-dir rows] :as state}]
         (cond
           (not= i sort-col)
           {:sort-col   i
            :sort-dir   :asc
-           :currencies (->> currencies (sort-by #(nth % i)))}
+           :rows (->> rows (sort-by #(nth % i)))}
 
           (= :asc sort-dir)
           {:sort-col   i
            :sort-dir   :desc
-           :currencies (->> currencies (sort-by #(nth % i)) reverse)}
+           :rows (->> rows (sort-by #(nth % i)) reverse)}
 
           (= :desc sort-dir)
           {:sort-col   i
            :sort-dir   :asc
-           :currencies (->> currencies (sort-by #(nth % i)))})))))
+           :rows (->> rows (sort-by #(nth % i)))})))))
+
+(def *search (signal/signal {:text        ""
+                             :placeholder "Filter columns"}))
+
 
 (ui/defcomp ui []
-  (let [{:keys [currencies
+  (let [{:keys [rows
                 sort-col
-                sort-dir]} @*state]
+                sort-dir]} @*state
+        search             @*search]
     [ui/column
      [ui/button
       {:on-click (fn [_]
                    (future (show-file-dialog)))}
       "Open file"]
+     [ui/size {:width 300}
+      [text-field ""
+       :placeholder "here think uo"
+       :padding-h 5
+       :padding-v 10
+       :*state *search]]
      [ui/align {:y :center}
       [ui/vscroll
        [ui/align {:x :center}
         [ui/padding {:padding 20}
          [ui/grid {:cols (count @*header)
-                   :rows (inc (count currencies))}
+                   :rows (inc (count rows))}
           (concat
            (for [[th i] (util/zip @*header (range))]
              [ui/clickable
@@ -108,10 +116,13 @@
                          :asc  " ⏶"
                          :desc " ⏷"
                          nil   ""))]]]]])
-           (for [row (take 10 currencies)
-                 s   row]
-             [ui/padding {:padding 10}
-              [ui/label s]]))]]]]]]))
+
+           (let [rows (filter (fn [row] (re-find
+                                         (re-pattern (:text search)) (first row))) rows)]
+             (for [row rows
+                   s   row]
+               [ui/padding {:padding 10}
+                [ui/label s]])))]]]]]]))
 
 
 (defonce *window
