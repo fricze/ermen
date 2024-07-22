@@ -2,11 +2,13 @@
   (:require [tech.v3.dataset :as ds]
             [clojure.string :as str]
             [io.github.humbleui.util :as util]
+            [io.github.humbleui.paint :as paint]
             [io.github.humbleui.window :as window]
             [io.github.humbleui.signal :as signal]
             [text-field :refer [text-field]]
             [io.github.humbleui.ui :as ui])
-  (:import [java.awt FileDialog Frame]))
+  (:import [java.awt FileDialog Frame]
+           [java.io FilenameFilter]))
 
 
 (def *header
@@ -42,16 +44,25 @@
   (ds/column-names (ds/->dataset "dev/currency.csv"))
   (first (ds/rowvecs (ds/->dataset "dev/currency.csv"))))
 
+(defn csv-filename-filter []
+  (proxy [FilenameFilter] []
+    (accept [dir name]
+      (.endsWith name ".csv"))))
+
+
 (defn show-file-dialog []
   (let [file-dialog (FileDialog. (Frame.) "Choose a file" FileDialog/LOAD)]
+    (.setFilenameFilter file-dialog (csv-filename-filter))
     (.setVisible file-dialog true)
+
     (let [file (.getFile file-dialog)
-          dir (.getDirectory file-dialog)]
+          dir  (.getDirectory file-dialog)]
       (if (and file dir)
         (let [path (str dir file)]
           (println "Selected file:" path)
           (load-csv path))
         (println "No file selected")))))
+
 
 
 (defn on-click [i]
@@ -116,7 +127,6 @@
     [ui/column {:gap 8}
      [header]
 
-
      [ui/align {:y :center}
       [ui/vscroll
        [ui/align {:x :center}
@@ -127,20 +137,24 @@
            (for [[th i] (util/zip @*header (range))]
              [ui/clickable
               {:on-click (on-click i)}
-              [ui/padding {:padding 10}
-               [ui/reserve-width
-                {:probes [[ui/label (str th " ⏶")]
-                          [ui/label (str th " ⏷")]]}
-                [ui/align {:x :left}
-                 [ui/row
-                  [ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
-                  [ui/label {:font-weight :bold}
-                   (str th
-                        (case (when (= i sort-col)
-                                sort-dir)
-                          :asc  " ⏶"
-                          :desc " ⏷"
-                          nil   ""))]]]]]])
+              (fn [{:keys [hovered]}]
+                [ui/reserve-width
+                 {:probes [[ui/label (str th " ⏶")]
+                           [ui/label (str th " ⏷")]]}
+                 [ui/align {:x :left}
+                  [ui/row
+                   #_[ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
+                   [ui/with-cursor {:cursor :pointing-hand}
+                    [ui/label {:font-weight :bold
+                               :paint (if hovered
+                                        (paint/fill 0xFF000000)
+                                        (paint/fill 0xFF808080))}
+                     (str th
+                          (case (when (= i sort-col)
+                                  sort-dir)
+                            :asc  " ⏶"
+                            :desc " ⏷"
+                            nil   ""))]]]]])])
 
            (let [rows (filter (fn [row] (re-find
                                          (re-pattern (str "(?i)" (:text search-col)))
