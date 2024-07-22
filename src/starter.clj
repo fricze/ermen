@@ -49,7 +49,7 @@
   (let [news (deref *news)]
     [ui/with-context
      {:font-size 18}
-     [ui/vscrollbar
+     [ui/vscroll
       [ui/padding {:top 20 :bottom 20}
        [ui/column {:gap 20}
         (map
