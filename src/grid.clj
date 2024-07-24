@@ -99,23 +99,42 @@
   [ui/padding {:left  100
                :right 100
                :top   20}
-   [ui/column {:gap 8}
-    [ui/button
-     {:on-click (fn [_]
-                  (future (show-file-dialog)))}
-     "Open file"]
+   [ui/focus-controller
+    #_[ui/column {:gap 10}
+       [ui/size {:width 300}
+        [text-field "Change me ([{word1} word2] wo-rd3)  , word4 🚵🏻‍♀️🚵🏻‍♀️🚵🏻‍♀️ 🚵🏻‍♀️ more more more" :from 13 :to 18 :border-radius 0]]
+       [ui/size {:width 300}
+        [text-field "0123456890 AaBbCcDdEe FfGgHhIiJj KkLlMmNnOo PpQqRrSsTt UuVvWwXxYyZz" :focused (util/now) :padding-h 5 :padding-v 10 :cursor-width 2 :cursor-blink-interval 100 :border-radius 100]]
+       [ui/size {:width 300}
+        [text-field "" :placeholder "Type here" :padding-h 5 :padding-v 10]]
+       [ui/size {:width 300}
+        [text-field "0123456890 AaBbCcDdEe FfGgHhIiJj KkLlMmNnOo PpQqRrSsTt UuVvWwXxYyZz" :padding-h 5 :padding-top 20 :padding-bottom 5 :cursor-blink-interval 0]]
+       [ui/size {:width 300}
+        [ui/align {:x :left}
+         [text-field "Content width" :from 13 :to 13 :padding-h 5 :padding-v 10]]]
+       [ui/size {:width 300}
+        [ui/align {:x :center}
+         [text-field "Align center" :padding-h 5 :padding-v 10]]]
+       [ui/size {:width 300}
+        [ui/align {:x :right}
+         [text-field "Align right" :padding-h 5 :padding-v 10]]]]
+    [ui/column {:gap 8}
+     [ui/button
+      {:on-click (fn [_]
+                   (future (show-file-dialog)))}
+      "Open file"]
 
-    [ui/size {:width 300}
-     [text-field "column"
-      :padding-h 5
-      :padding-v 10
-      :*state *search-columns]]
+     [ui/size {:width 300}
+      [text-field "column"
+       :padding-h 5
+       :padding-v 10
+       :*state *search-columns]]
 
-    [ui/size {:width 300}
-     [text-field "row"
-      :padding-h 5
-      :padding-v 10
-      :*state *search-rows]]]])
+     [ui/size {:width 300}
+      [text-field "row"
+       :padding-h 5
+       :padding-v 10
+       :*state *search-rows]]]]])
 
 
 (ui/defcomp ui []
@@ -138,7 +157,8 @@
              [ui/clickable
               {:on-click (on-click i)}
               (fn [{:keys [hovered]}]
-                [ui/reserve-width
+                [ui/padding {:padding 10}
+                 [ui/reserve-width
                  {:probes [[ui/label (str th " ⏶")]
                            [ui/label (str th " ⏷")]]}
                  [ui/align {:x :left}
@@ -154,16 +174,16 @@
                                   sort-dir)
                             :asc  " ⏶"
                             :desc " ⏷"
-                            nil   ""))]]]]])])
+                            nil   ""))]]]]]])])
 
            (let [rows (filter (fn [row] (re-find
                                          (re-pattern (str "(?i)" (:text search-col)))
-                                         (first row)))
+                                         (str (first row))))
                               rows)
                  rows (filter (fn [row]
                                 (some (fn [cell] (re-find
                                                   (re-pattern (str "(?i)" (:text search-row)))
-                                                  cell))
+                                                  (str cell)))
                                       (rest row))) rows)]
              (for [row rows
                    s   row]
