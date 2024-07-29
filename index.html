@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 </head>
-<title>My First Web Page</title>
+    <title>My First Web Page</title>
 </head>
 
 <body>
@@ -13,19 +13,25 @@
     <table id="data_table">
         <thead>
             <tr>
-                <td>UPC_Code</td>
-                <td>Product_Name</td>
+                <th>UPC_Code</th>
+                <th>Product_Name</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="data_table_body">
             <!-- existing data could optionally be included here -->
         </tbody>
     </table>
 
+    <template id="data_header">
+        <th></th>
+    </template>
+
+    <template id="data_cell">
+        <td></td>
+    </template>
+
     <template id="data_row">
         <tr>
-            <td class="record"></td>
-            <td></td>
         </tr>
     </template>
 </body>
@@ -36,11 +42,27 @@
     const fileInput = document.getElementById('csv')
     const outElement = document.getElementById('out')
     const previewCSVData = async dataurl => {
-        const d = await d3.csv(dataurl)
-        console.log({
-            d
+        const dataset = await d3.csv(dataurl)
+
+        const rows = dataset.slice(0, 100).map((col) => {
+            const row = window.data_row.content.cloneNode(true)
+            const values = Object.values(col)
+            row.querySelector("tr").replaceChildren(...values.map((cell) => {
+                const cellElement = window.data_cell.content.cloneNode(true)
+                cellElement.querySelector("td").textContent = cell
+                return cellElement
+            }))
+
+            return row
         })
-        console.log(d.columns)
+        document.querySelector('tbody').replaceChildren(...rows)
+
+        const columns = dataset.columns.map((col) => {
+            const header = window.data_header.content.cloneNode(true)
+            header.querySelector("th").textContent = col
+            return header
+        })
+        document.querySelector('thead tr').replaceChildren(...columns)
     }
 
     const readFile = e => {
