@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+</head>
+<title>My First Web Page</title>
+</head>
+
+<body>
+    <div>
+        <p>Select local CSV File:</p>
+        <input id="csv" type="file" accept=".csv">
+    </div>
+
+    <table id="data_table">
+        <thead>
+            <tr>
+                <td>UPC_Code</td>
+                <td>Product_Name</td>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- existing data could optionally be included here -->
+        </tbody>
+    </table>
+
+    <template id="data_row">
+        <tr>
+            <td class="record"></td>
+            <td></td>
+        </tr>
+    </template>
+</body>
+
+<script type="text/javascript" src="https://unpkg.com/d3@7.6.1/dist/d3.min.js"></script>
+
+<script>
+    const fileInput = document.getElementById('csv')
+    const outElement = document.getElementById('out')
+    const previewCSVData = async dataurl => {
+        const d = await d3.csv(dataurl)
+        console.log({
+            d
+        })
+        console.log(d.columns)
+    }
+
+    const readFile = e => {
+        const file = fileInput.files[0]
+        const reader = new FileReader()
+        reader.onload = () => {
+            const dataUrl = reader.result;
+            previewCSVData(dataUrl)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    fileInput.onchange = readFile
+</script>
+
+</html>

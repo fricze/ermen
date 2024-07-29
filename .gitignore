@@ -2,3 +2,4 @@
 .lsp
 .nrepl-port
 .cpcache
+.DS_Store
