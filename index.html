@@ -2,6 +2,89 @@
 <html>
 </head>
     <title>My First Web Page</title>
+    <style>
+    .wrapper {
+        overflow: scroll;
+        width: 90vw;
+        height: 80dvh;
+    }
+
+    table {
+        border-collapse: collapse;
+        /* width: max(65rem, 100%); */
+        table-layout: fixed;
+    }
+
+    th,
+    caption {
+	text-align: start;
+    }
+
+    caption {
+	margin-block: 0.75rem;
+    }
+
+    thead th:not(:first-child),
+    td {
+	text-align: end;
+    }
+
+    thead {
+	border-block-end: 2px solid;
+	background: whitesmoke;
+    }
+
+    tfoot {
+	border-block: 2px solid;
+	background: whitesmoke;
+    }
+
+    th,
+    td {
+	border: 1px solid lightgrey;
+	padding: 0.25rem 0.75rem;
+	vertical-align: baseline;
+    }
+
+    th:first-child {
+	position: sticky;
+	inset-inline-start: 0;
+	border-inline-end: none;
+    }
+
+    tbody th {
+	background: white;
+    }
+
+    thead th,
+    tfoot th {
+	background: whitesmoke;
+    }
+
+    thead th {
+	vertical-align: bottom;
+    }
+
+    td:first-of-type,
+    :where(thead, tfoot) th:nth-child(2) {
+	border-inline-start: none;
+    }
+
+    th:first-of-type {
+	width: 10rem;
+    }
+
+    th:first-child::after {
+	content: '';
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-end: 0;
+	width: 1px;
+	height: 100%;
+	background: lightgrey;
+    }
+
+    </style>
 </head>
 
 <body>
@@ -10,6 +93,7 @@
         <input id="csv" type="file" accept=".csv">
     </div>
 
+    <div class="wrapper">
     <table id="data_table">
         <thead>
             <tr>
@@ -21,6 +105,7 @@
             <!-- existing data could optionally be included here -->
         </tbody>
     </table>
+    </div>
 
     <template id="data_header">
         <th></th>
