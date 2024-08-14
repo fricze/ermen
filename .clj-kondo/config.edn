@@ -1,2 +1,4 @@
 {:lint-as {io.github.humbleui.ui/defcomp clojure.core/defn
-           io.github.humbleui.ui/deflazy clojure.core/defn}}
+           io.github.humbleui.ui/deflazy clojure.core/defn
+           io.github.humbleui.util/deftype+ clojure.core/deftype}}
+

@@ -4,6 +4,7 @@
             [io.github.humbleui.util :as util]
             [io.github.humbleui.paint :as paint]
             [io.github.humbleui.window :as window]
+            [scroll :as scroll]
             [io.github.humbleui.signal :as signal]
             [text-field :refer [text-field]]
             [io.github.humbleui.ui :as ui])
@@ -129,7 +130,7 @@
      [header]
 
      [ui/align {:y :center}
-      [ui/vscroll
+      [scroll/vscroll
        [ui/align {:x :center}
         [ui/padding {:padding 20}
          [ui/grid {:cols (count @*header)
