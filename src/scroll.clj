@@ -74,7 +74,9 @@
                                            (- (:delta-y event))
                                            (util/clamp 0 (- (:height child-size) (:height bounds))))]
 
-                      (when (not= offset-x-px offset-x-px')
+                      (when (and
+                             (> (:width child-size) (:width bounds))
+                             (not= offset-x-px offset-x-px'))
                         (set! offset-x-px offset-x-px')
                         (reset! offset-x (ui/descaled (math/round offset-x-px')))
                         (window/request-frame (:window ctx)))
@@ -86,6 +88,30 @@
 
                  :mouse-button
                  (when (util/rect-contains? bounds (util/ipoint (:x event) (:y event)))
+                   (ui/event child ctx event))
+
+                 :key
+                 (case (:key event)
+                   :page-down
+                   (let [offset-y-px' (-> offset-y-px
+                                          (+ (:height bounds))
+                                          (util/clamp 0 (- (:height child-size) (:height bounds))))]
+
+                     (when (not= offset-y-px offset-y-px')
+                       (set! offset-y-px offset-y-px')
+                       (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                       (window/request-frame (:window ctx))))
+                   :page-up
+                   (let [offset-y-px' (-> offset-y-px
+                                          (- (:height bounds))
+                                          (util/clamp 0 (- (:height child-size) (:height bounds))))]
+
+                     (when (not= offset-y-px offset-y-px')
+                       (set! offset-y-px offset-y-px')
+                       (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                       (window/request-frame (:window ctx))))
+
+                   #_:else
                    (ui/event child ctx event))
 
                  #_:else

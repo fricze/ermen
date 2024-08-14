@@ -129,49 +129,52 @@
     [ui/column {:gap 8}
      [header]
 
-     [ui/align {:y :center}
-      [scroll/vscroll
-       [ui/align {:x :center}
-        [ui/padding {:padding 20}
-         [ui/grid {:cols (count @*header)
-                   :rows (inc (count rows))}
-          (concat
-           (for [[th i] (util/zip @*header (range))]
-             [ui/clickable
-              {:on-click (on-click i)}
-              (fn [{:keys [hovered]}]
-                [ui/padding {:padding 10}
-                 [ui/reserve-width
-                 {:probes [[ui/label (str th " ⏶")]
-                           [ui/label (str th " ⏷")]]}
-                 [ui/align {:x :left}
-                  [ui/row
-                   #_[ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
-                   [ui/with-cursor {:cursor :pointing-hand}
-                    [ui/label {:font-weight :bold
-                               :paint (if hovered
-                                        (paint/fill 0xFF000000)
-                                        (paint/fill 0xFF808080))}
-                     (str th
-                          (case (when (= i sort-col)
-                                  sort-dir)
-                            :asc  " ⏶"
-                            :desc " ⏷"
-                            nil   ""))]]]]]])])
+     [ui/padding {:left  100
+                  :right 100
+                  :top   20}
+      [ui/align {:y :center}
+       [scroll/vscroll
+        [ui/align {:x :center}
+         [ui/padding {:padding 20}
+          [ui/grid {:cols (count @*header)
+                    :rows (inc (count rows))}
+           (concat
+            (for [[th i] (util/zip @*header (range))]
+              [ui/clickable
+               {:on-click (on-click i)}
+               (fn [{:keys [hovered]}]
+                 [ui/padding {:padding 10}
+                  [ui/reserve-width
+                   {:probes [[ui/label (str th " ⏶")]
+                             [ui/label (str th " ⏷")]]}
+                   [ui/align {:x :left}
+                    [ui/row
+                     #_[ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
+                     [ui/with-cursor {:cursor :pointing-hand}
+                      [ui/label {:font-weight :bold
+                                 :paint (if hovered
+                                          (paint/fill 0xFF000000)
+                                          (paint/fill 0xFF808080))}
+                       (str th
+                            (case (when (= i sort-col)
+                                    sort-dir)
+                              :asc  " ⏶"
+                              :desc " ⏷"
+                              nil   ""))]]]]]])])
 
-           (let [rows (filter (fn [row] (re-find
-                                         (re-pattern (str "(?i)" (:text search-col)))
-                                         (str (first row))))
-                              rows)
-                 rows (filter (fn [row]
-                                (some (fn [cell] (re-find
-                                                  (re-pattern (str "(?i)" (:text search-row)))
-                                                  (str cell)))
-                                      (rest row))) rows)]
-             (for [row rows
-                   s   row]
-               [ui/padding {:padding 10}
-                [ui/label s]])))]]]]]]))
+            (let [rows (filter (fn [row] (re-find
+                                          (re-pattern (str "(?i)" (:text search-col)))
+                                          (str (first row))))
+                               rows)
+                  rows (filter (fn [row]
+                                 (some (fn [cell] (re-find
+                                                   (re-pattern (str "(?i)" (:text search-row)))
+                                                   (str cell)))
+                                       (rest row))) rows)]
+              (for [row rows
+                    s   row]
+                [ui/padding {:padding 10}
+                 [ui/label s]])))]]]]]]]))
 
 
 
