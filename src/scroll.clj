@@ -128,7 +128,7 @@
                        (set! offset-y offset-y')))))
 
 
-(defn hscrollable
+#_(defn hscrollable
   ([child]
    (hscrollable {} child))
   ([opts child]
