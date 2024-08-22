@@ -91,60 +91,63 @@
                    (ui/event child ctx event))
 
                  :key
-                 (case (:key event)
-                   :page-down
-                   (let [offset-y-px' (-> offset-y-px
-                                          (+ (:height bounds))
-                                          (util/clamp 0 (- (:height child-size) (:height bounds))))]
-
-                     (when (not= offset-y-px offset-y-px')
-                       (set! offset-y-px offset-y-px')
-                       (reset! offset-y (ui/descaled (math/round offset-y-px')))
-                       (window/request-frame (:window ctx))))
-
-                   :home
-                   (if ((:modifiers event) :shift)
-                     (let [offset-x-px' 0]
-
-                       (when (not= offset-x-px offset-x-px')
-                         (set! offset-x-px offset-x-px')
-                         (reset! offset-x (ui/descaled (math/round offset-x-px')))
-                         (window/request-frame (:window ctx))))
-
-                     (let [offset-y-px' 0]
+                 (if (:pressed? event)
+                   (case (:key event)
+                     :page-down
+                     (let [offset-y-px' (-> offset-y-px
+                                            (+ (:height bounds))
+                                            (util/clamp 0 (- (:height child-size) (:height bounds))))]
 
                        (when (not= offset-y-px offset-y-px')
                          (set! offset-y-px offset-y-px')
                          (reset! offset-y (ui/descaled (math/round offset-y-px')))
-                         (window/request-frame (:window ctx)))))
-
-                   :end
-                   (if ((:modifiers event) :shift)
-                     (let [offset-x-px' (- (:width child-size) (:width bounds))]
-
-                       (when (not= offset-x-px offset-x-px')
-                         (set! offset-x-px offset-x-px')
-                         (reset! offset-x (ui/descaled (math/round offset-x-px')))
                          (window/request-frame (:window ctx))))
 
-                     (let [offset-y-px' (- (:height child-size) (:height bounds))]
+                     :home
+                     (if ((:modifiers event) :shift)
+                       (let [offset-x-px' 0]
+
+                         (when (not= offset-x-px offset-x-px')
+                           (set! offset-x-px offset-x-px')
+                           (reset! offset-x (ui/descaled (math/round offset-x-px')))
+                           (window/request-frame (:window ctx))))
+
+                       (let [offset-y-px' 0]
+
+                         (when (not= offset-y-px offset-y-px')
+                           (set! offset-y-px offset-y-px')
+                           (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                           (window/request-frame (:window ctx)))))
+
+                     :end
+                     (if ((:modifiers event) :shift)
+                       (let [offset-x-px' (- (:width child-size) (:width bounds))]
+
+                         (when (not= offset-x-px offset-x-px')
+                           (set! offset-x-px offset-x-px')
+                           (reset! offset-x (ui/descaled (math/round offset-x-px')))
+                           (window/request-frame (:window ctx))))
+
+                       (let [offset-y-px' (- (:height child-size) (:height bounds))]
+
+                         (when (not= offset-y-px offset-y-px')
+                           (set! offset-y-px offset-y-px')
+                           (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                           (window/request-frame (:window ctx)))))
+
+                     :page-up
+                     (let [offset-y-px' (-> offset-y-px
+                                            (- (:height bounds))
+                                            (util/clamp 0 (- (:height child-size) (:height bounds))))]
 
                        (when (not= offset-y-px offset-y-px')
                          (set! offset-y-px offset-y-px')
                          (reset! offset-y (ui/descaled (math/round offset-y-px')))
-                         (window/request-frame (:window ctx)))))
+                         (window/request-frame (:window ctx))))
 
-                   :page-up
-                   (let [offset-y-px' (-> offset-y-px
-                                          (- (:height bounds))
-                                          (util/clamp 0 (- (:height child-size) (:height bounds))))]
+                     #_:else
+                     (ui/event child ctx event))
 
-                     (when (not= offset-y-px offset-y-px')
-                       (set! offset-y-px offset-y-px')
-                       (reset! offset-y (ui/descaled (math/round offset-y-px')))
-                       (window/request-frame (:window ctx))))
-
-                   #_:else
                    (ui/event child ctx event))
 
                  #_:else
