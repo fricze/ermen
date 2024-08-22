@@ -67,7 +67,7 @@
                       (recur (:x bounds) (+ y height) (inc row) 0)
 
                       ;; end of viewport on the right
-                      (and (>= col (dec cols)) (>= (+ x width) (+ 20 (:right viewport)))) ;; skip rest of current row
+                      (and (>= col (dec cols)) (>= (+ x width) (:right viewport))) ;; skip rest of current row
                       (recur (:x bounds) (+ y height) (inc row) 0)
 
                       ;; next col in the same row
