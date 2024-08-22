@@ -121,60 +121,64 @@
        :*state *search-rows]]]]])
 
 
-(ui/defcomp ui []
+(ui/defcomp sheet []
   (let [{:keys [rows
                 sort-col
                 sort-dir]} @*state
         search-col         @*search-columns
         search-row         @*search-rows]
-    [ui/column {:gap 8}
-     [header]
+    [grid-comp/grid {:cols (count @*header)
+                     :rows (inc (count rows))}
+     (concat
+      (for [[th i] (util/zip @*header (range))]
+        [ui/clickable
+         {:on-click (on-click i)}
+         (fn [{:keys [hovered]}]
+           [ui/padding {:padding 10}
+            [ui/reserve-width
+             {:probes [[ui/label (str th " ⏶")]
+                       [ui/label (str th " ⏷")]]}
+             [ui/align {:x :left}
+              [ui/row
+               #_[ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
+               [ui/with-cursor {:cursor :pointing-hand}
+                [ui/label {:font-weight :bold
+                           :paint (if hovered
+                                    (paint/fill 0xFF000000)
+                                    (paint/fill 0xFF808080))}
+                 (str th
+                      (case (when (= i sort-col)
+                              sort-dir)
+                        :asc  " ⏶"
+                        :desc " ⏷"
+                        nil   ""))]]]]]])])
 
-     [ui/padding {:left  100
-                  :right 100
-                  :top   20}
-      [ui/align {:y :center}
-       [ui/align {:x :center}
-        [ui/padding {:padding 20}
-         [ui/grid {:cols (count @*header)
-                   :rows (inc (count rows))}
-          (concat
-           (for [[th i] (util/zip @*header (range))]
-             [ui/clickable
-              {:on-click (on-click i)}
-              (fn [{:keys [hovered]}]
-                [ui/padding {:padding 10}
-                 [ui/reserve-width
-                  {:probes [[ui/label (str th " ⏶")]
-                            [ui/label (str th " ⏷")]]}
-                  [ui/align {:x :left}
-                   [ui/row
-                    #_[ui/checkbox {:*value (signal/signal true)} [ui/label ""]]
-                    [ui/with-cursor {:cursor :pointing-hand}
-                     [ui/label {:font-weight :bold
-                                :paint (if hovered
-                                         (paint/fill 0xFF000000)
-                                         (paint/fill 0xFF808080))}
-                      (str th
-                           (case (when (= i sort-col)
-                                   sort-dir)
-                             :asc  " ⏶"
-                             :desc " ⏷"
-                             nil   ""))]]]]]])])
+      (let [rows (filter (fn [row] (re-find
+                                    (re-pattern (str "(?i)" (:text search-col)))
+                                    (str (first row))))
+                         rows)
+            rows (filter (fn [row]
+                           (some (fn [cell] (re-find
+                                             (re-pattern (str "(?i)" (:text search-row)))
+                                             (str cell)))
+                                 (rest row))) rows)]
+        (for [row rows
+              s   row]
+          [ui/padding {:padding 10}
+           [ui/label s]])))]))
 
-           (let [rows (filter (fn [row] (re-find
-                                         (re-pattern (str "(?i)" (:text search-col)))
-                                         (str (first row))))
-                              rows)
-                 rows (filter (fn [row]
-                                (some (fn [cell] (re-find
-                                                  (re-pattern (str "(?i)" (:text search-row)))
-                                                  (str cell)))
-                                      (rest row))) rows)]
-             (for [row rows
-                   s   row]
-               [ui/padding {:padding 10}
-                [ui/label s]])))]]]]]]))
+(ui/defcomp ui []
+  [ui/column {:gap 8}
+   [header]
+
+   [ui/padding {:left   100
+                :right  100
+                :top    20
+                :bottom 20}
+    [ui/align {:y :center
+               :x :center}
+     [scroll/scroll
+      [sheet]]]]])
 
 
 
@@ -201,3 +205,4 @@
   (redraw!)
 
   (-main))
+

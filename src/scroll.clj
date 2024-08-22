@@ -101,6 +101,39 @@
                        (set! offset-y-px offset-y-px')
                        (reset! offset-y (ui/descaled (math/round offset-y-px')))
                        (window/request-frame (:window ctx))))
+
+                   :home
+                   (if ((:modifiers event) :shift)
+                     (let [offset-x-px' 0]
+
+                       (when (not= offset-x-px offset-x-px')
+                         (set! offset-x-px offset-x-px')
+                         (reset! offset-x (ui/descaled (math/round offset-x-px')))
+                         (window/request-frame (:window ctx))))
+
+                     (let [offset-y-px' 0]
+
+                       (when (not= offset-y-px offset-y-px')
+                         (set! offset-y-px offset-y-px')
+                         (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                         (window/request-frame (:window ctx)))))
+
+                   :end
+                   (if ((:modifiers event) :shift)
+                     (let [offset-x-px' (- (:width child-size) (:width bounds))]
+
+                       (when (not= offset-x-px offset-x-px')
+                         (set! offset-x-px offset-x-px')
+                         (reset! offset-x (ui/descaled (math/round offset-x-px')))
+                         (window/request-frame (:window ctx))))
+
+                     (let [offset-y-px' (- (:height child-size) (:height bounds))]
+
+                       (when (not= offset-y-px offset-y-px')
+                         (set! offset-y-px offset-y-px')
+                         (reset! offset-y (ui/descaled (math/round offset-y-px')))
+                         (window/request-frame (:window ctx)))))
+
                    :page-up
                    (let [offset-y-px' (-> offset-y-px
                                           (- (:height bounds))
@@ -128,20 +161,9 @@
                        (set! offset-y offset-y')))))
 
 
-#_(defn hscrollable
+(defn scroll
   ([child]
-   (hscrollable {} child))
-  ([opts child]
-   (map->HScrollable
-    {:offset-y-px 0
-     :offset-y    (or
-                   (:offset-y opts)
-                   (signal/signal 0))})))
-
-
-(defn vscroll
-  ([child]
-   (vscroll {} child))
+   (scroll {} child))
   ([opts child]
    (map->Scrollable
     {:offset-y-px 0
@@ -152,3 +174,4 @@
      :offset-x    (or
                    (:offset-x opts)
                    (signal/signal 0))})))
+
