@@ -4,3 +4,5 @@
 .cpcache
 .DS_Store
 /datasets
+
+*.log
