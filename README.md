@@ -1,3 +1,5 @@
+![Ermine](./ermine.png)
+
 CSV viewer built using [Humble UI](https://github.com/HumbleUI/HumbleUI/).
 
 Start with
