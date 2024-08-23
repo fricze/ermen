@@ -1,7 +1,13 @@
-A simple project template using [Humble UI](https://github.com/HumbleUI/HumbleUI/).
+CSV viewer built using [Humble UI](https://github.com/HumbleUI/HumbleUI/).
 
 Start with
 
 ```
-clj -M -m starter
+clj -M -m grid
+```
+
+I actually do
+
+```
+cider > cider-jack-in
 ```
