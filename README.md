@@ -1,4 +1,5 @@
 ![Ermine](./ermine.png)
+![app](./app.png)
 
 CSV viewer built using [Humble UI](https://github.com/HumbleUI/HumbleUI/).
 
